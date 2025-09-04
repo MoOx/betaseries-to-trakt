@@ -7,6 +7,7 @@ import csv
 import re
 import json
 import requests
+import time
 
 bs_api = 'https://api.betaseries.com'
 bs_api_key = os.environ.get('BS_API_KEY')
@@ -66,89 +67,137 @@ def create_show_history(obj):
     name = obj[1]
     status_pct = obj[4]
 
-    output = re.search('S([0-9]+)E([0-9]+)', obj[3])
-    last_seen_season = output.group(1)
-    last_seen_episode = output.group(2)
+    try:
+        output = re.search('S([0-9]+)E([0-9]+)', obj[3])
+        if not output:
+            print(f"⚠️  Format d'épisode invalide pour la série '{name}' (ID: {id}): {obj[3]}")
+            return None
+            
+        last_seen_season = output.group(1)
+        last_seen_episode = output.group(2)
 
-    request = bs_session.get(bs_show_route + '?id=' + id)
-    response = request.json()
+        request = bs_session.get(bs_show_route + '?id=' + id)
+        response = request.json()
+        
+        # Petit délai pour éviter de surcharger l'API
+        time.sleep(0.1)
+        
+        if 'show' not in response or 'thetvdb_id' not in response['show']:
+            print(f"⚠️  Série '{name}' (ID: {id}) non trouvée dans Betaseries, ignorée.")
+            return None
 
-    show = {
-        'name': name,
-        'ids': {
-            'tvdb': response['show']['thetvdb_id']
-        },
-        'watched_at': 'released'
-    }
+        show = {
+            'name': name,
+            'ids': {
+                'tvdb': response['show']['thetvdb_id']
+            },
+            'watched_at': 'released'
+        }
 
-    if status_pct != '100':
-        show['seasons'] = []
+        if status_pct != '100':
+            show['seasons'] = []
 
-        for s in range(0, int(last_seen_season)):
-            show['seasons'].append({
-                'number': s + 1,
-                'watched_at': 'released'
-            })
+            for s in range(0, int(last_seen_season)):
+                show['seasons'].append({
+                    'number': s + 1,
+                    'watched_at': 'released'
+                })
 
-            if (s + 1) == int(last_seen_season):
-                show['seasons'][s]['episodes'] = []
+                if (s + 1) == int(last_seen_season):
+                    show['seasons'][s]['episodes'] = []
 
-                for e in range(0, int(last_seen_episode)):
-                    show['seasons'][s]['episodes'].append({
-                        'number': e + 1,
-                        'watched_at': 'released'
-                    })
+                    for e in range(0, int(last_seen_episode)):
+                        show['seasons'][s]['episodes'].append({
+                            'number': e + 1,
+                            'watched_at': 'released'
+                        })
 
-    return show
+        return show
+    except Exception as e:
+        print(f"❌ Erreur lors du traitement de la série '{name}' (ID: {id}): {e}")
+        return None
 
 def create_show_watchlist(obj):
     id = obj[0]
     name = obj[1]
 
-    request = bs_session.get(bs_show_route + '?id=' + id)
-    response = request.json()
+    try:
+        request = bs_session.get(bs_show_route + '?id=' + id)
+        response = request.json()
+        
+        # Petit délai pour éviter de surcharger l'API
+        time.sleep(0.1)
+        
+        if 'show' not in response or 'thetvdb_id' not in response['show']:
+            print(f"⚠️  Série '{name}' (ID: {id}) non trouvée dans Betaseries, ignorée.")
+            return None
 
-    show = {
-        'name': name,
-        'ids': {
-            'tvdb': response['show']['thetvdb_id']
+        show = {
+            'name': name,
+            'ids': {
+                'tvdb': response['show']['thetvdb_id']
+            }
         }
-    }
 
-    return show
+        return show
+    except Exception as e:
+        print(f"❌ Erreur lors du traitement de la série '{name}' (ID: {id}): {e}")
+        return None
 
 def create_movie_history(obj):
     id = obj[0]
     name = obj[1]
 
-    request = bs_session.get(bs_movie_route + '?id=' + id)
-    response = request.json()
+    try:
+        request = bs_session.get(bs_movie_route + '?id=' + id)
+        response = request.json()
+        
+        # Petit délai pour éviter de surcharger l'API
+        time.sleep(0.1)
+        
+        if 'movie' not in response or 'tmdb_id' not in response['movie']:
+            print(f"⚠️  Film '{name}' (ID: {id}) non trouvé dans Betaseries, ignoré.")
+            return None
 
-    movie = {
-        'title': name,
-        'ids': {
-            'tmdb': response['movie']['imdb_id']
-        },
-        'watched_at': 'released'
-    }
-
-    return movie
+        movie = {
+            'title': name,
+            'ids': {
+                'tmdb': response['movie']['tmdb_id']
+            },
+            'watched_at': 'released'
+        }
+        
+        return movie
+    except Exception as e:
+        print(f"❌ Erreur lors du traitement du film '{name}' (ID: {id}): {e}")
+        return None
 
 def create_movie_watchlist(obj):
     id = obj[0]
     name = obj[1]
 
-    request = bs_session.get(bs_movie_route + '?id=' + id)
-    response = request.json()
+    try:
+        request = bs_session.get(bs_movie_route + '?id=' + id)
+        response = request.json()
+        
+        # Petit délai pour éviter de surcharger l'API
+        time.sleep(0.1)
+        
+        if 'movie' not in response or 'tmdb_id' not in response['movie']:
+            print(f"⚠️  Film '{name}' (ID: {id}) non trouvé dans Betaseries, ignoré.")
+            return None
 
-    movie = {
-        'title': name,
-        'ids': {
-            'tmdb': response['movie']['imdb_id']
+        movie = {
+            'title': name,
+            'ids': {
+                'tmdb': response['movie']['tmdb_id']
+            }
         }
-    }
-
-    return movie
+        
+        return movie
+    except Exception as e:
+        print(f"❌ Erreur lors du traitement du film '{name}' (ID: {id}): {e}")
+        return None
 
 
 def main():
@@ -167,41 +216,77 @@ def main():
     for file_path in sys.argv[1::]:
         file = open(file_path, encoding="utf8")
         file_name = os.path.basename(file_path)
-        if "series-" in file_name:
-            type = 'show'
-        else:
-            type = 'movie'
+        
+        print(f"📄 Traitement du fichier: {file_name}")
+        
+        # Compter le nombre total de lignes pour afficher la progression
+        total_lines = sum(1 for line in open(file_path, encoding="utf8")) - 1  # -1 pour le header
+        current_line = 0
 
         for row in csv.reader(file):
             # we move to next line (first is header)
             if row[0] == 'id':
                 continue
+                
+            current_line += 1
+            
+            # Déterminer le type basé sur le nombre de colonnes
+            # Séries: id,title,archive,episode,remaining,status,tags (7 colonnes)
+            # Films: id,title,status,date (4 colonnes)
+            if len(row) >= 7:
+                type = 'show'
+            elif len(row) == 4:
+                type = 'movie'
+            else:
+                print(f"⚠️  Format non reconnu pour la ligne: {row}")
+                continue
+                
+            print(f"📊 Progression: {current_line}/{total_lines} - {type}: {row[1]}")
 
             if type == 'show':
                 status_pct = row[5]
                 if status_pct == '0':
-                    post_watchlist_data['shows'].append(create_show_watchlist(row))
+                    show = create_show_watchlist(row)
+                    if show is not None:
+                        post_watchlist_data['shows'].append(show)
                 else:
-                    post_history_data['shows'].append(create_show_history(row))
+                    show = create_show_history(row)
+                    if show is not None:
+                        post_history_data['shows'].append(show)
 
             if type == 'movie':
                 status = row[2] # '2' = je ne veux pas voir, '1' = j'ai vu, '0' = je veux voir
                 if status == '0':
-                    post_watchlist_data['movies'].append(create_movie_watchlist(row))
+                    movie = create_movie_watchlist(row)
+                    if movie is not None:
+                        post_watchlist_data['movies'].append(movie)
                 elif status == '1':
-                    post_history_data['movies'].append(create_movie_history(row))
+                    movie = create_movie_history(row)
+                    if movie is not None:
+                        post_history_data['movies'].append(movie)
 
         file.close()
 
     # Post 'history' data
-
     request_history = session.post(sync_history_route, data=json.dumps(post_history_data))
-    response_history = request_history.json()
+    
+    if request_history.status_code == 200 or request_history.status_code == 201:
+        response_history = request_history.json()
+    else:
+        print(f"Error with history request: {request_history.status_code} - {request_history.text}")
+        response_history = {"added": {"episodes": 0, "movies": 0}, "not_found": {"shows": [], "episodes": [], "movies": []}}
+
+    # Wait 2 seconds to respect rate limits
+    time.sleep(2)
 
     # Post 'watchlist' data
-
     request_watchlist = session.post(sync_watchlist_route, data=json.dumps(post_watchlist_data))
-    response_watchlist = request_watchlist.json()
+    
+    if request_watchlist.status_code == 200 or request_watchlist.status_code == 201:
+        response_watchlist = request_watchlist.json()
+    else:
+        print(f"Error with watchlist request: {request_watchlist.status_code} - {request_watchlist.text}")
+        response_watchlist = {"added": {"shows": 0, "movies": 0}, "existing": {"shows": 0, "movies": 0}, "not_found": {"shows": [], "movies": []}}
 
     # Print summary
 
