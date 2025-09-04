@@ -1,12 +1,10 @@
-betaseries-to-trakt
-===========
+# betaseries-to-trakt
 
 Import your [Betaseries](https://www.betaseries.com) account's TV shows informations into your [Trakt.tv](https://trakt.tv) account.
 
 [![](https://images.microbadger.com/badges/version/tuxity/betaseries-to-trakt.svg)](https://hub.docker.com/r/tuxity/betaseries-to-trakt/)
 ![](https://images.microbadger.com/badges/image/tuxity/betaseries-to-trakt.svg)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://opensource.org/licenses/MIT)
-
 
 ## Getting Started
 
@@ -22,7 +20,7 @@ Go to [Développer avec l'API'](https://www.betaseries.com/compte/api), create a
 
 Go [register a new api app]( https://trakt.tv/oauth/applications/new). And fill the form with theses informations:
 
-```
+```sh
 Name: betaseries-to-trakt
 Redirect uri: urn:ietf:wg:oauth:2.0:oob
 ```
@@ -36,9 +34,10 @@ You will need the `Client ID` and the `Client Secret` from that page.
 ### Running the script
 
 #### With Docker
-```
+
+```sh
 docker pull tuxity/betaseries-to-trakt:latest
-docker run -d --env BS_API_KEY=betaSeriesAPIKey CLIENT_ID=theclientID --env CLIENT_SECRET=theclientseccret tuxity/betaseries-to-trakt:latest
+docker run -d --env BS_API_KEY=betaSeriesAPIKey --env CLIENT_ID=theclientID --env CLIENT_SECRET=theclientseccret tuxity/betaseries-to-trakt:latest
 ```
 
 #### Without Docker
@@ -46,12 +45,14 @@ docker run -d --env BS_API_KEY=betaSeriesAPIKey CLIENT_ID=theclientID --env CLIE
 You will need python3
 
 Launch the script like this:
-```
+
+```sh
 BS_API_KEY=betaSeriesAPIKey CLIENT_ID=theclientID CLIENT_SECRET=theclientseccret python3 betaseries-to-trakt.py "~/Downloads/series-tuxity.csv" "~/Downloads/films-tuxity.csv"
 ```
 
 On Windows, set the 3 environment keys with the command: 
-```
+
+```sh
 export BS_API_KEY=betaSeriesAPIKey
 export CLIENT_ID=theclientID
 export CLIENT_SECRET=theclientseccret
@@ -67,7 +68,7 @@ ET VOILA!
 
 - shows with no episodes watched will be added to your Trakt's Shows watchlist
 
-```
+```csv
 // example
 
 id,title,archive,episode,remaining,status,tags
@@ -76,7 +77,7 @@ id,title,archive,episode,remaining,status,tags
 
 - shows that have at least 1 episode seen will be added to your Trakt's history (the seen episodes `watched at` dates will be set to the release date, as Betaseries does not provide this information in the CSV export)
 
-```
+```csv
 // example
 
 id,title,archive,episode,remaining,status,tags
@@ -91,7 +92,7 @@ There are 3 different statuses for a movie in Betaseries
 - Movies with the status `1` (= `j'ai vu`) will be added to your Trakt's Movies history (the `watched at` date will be set to the release date, as Betaseries does not provide this information in the CSV export)
 - Movies with the status `2` (= `je ne veux pas voir`) will be ignored
 
-```
+```csv
 // example
 
 id,title,status,date
